@@ -1,0 +1,47 @@
+// ... existing code ...
+
+# User sessions storage
+user_sessions = {}
+
+# Session timeout in seconds (e.g., 1 hour)
+SESSION_TIMEOUT = 3600
+
+class UserSession:
+    def __init__(self, user_id):
+        self.user_id = user_id
+        self.model = DEFAULT_MODEL
+        self.temperature = DEFAULT_TEMPERATURE
+        self.max_tokens = DEFAULT_MAX_TOKENS
+        self.conversation_history = []
+        self.last_interaction = time.time()
+
+    # ... existing code ...
+
+def cleanup_inactive_sessions():
+    """Remove inactive sessions to prevent memory leaks"""
+    current_time = time.time()
+    inactive_users = []
+    
+    for user_id, session in user_sessions.items():
+        if current_time - session.last_interaction > SESSION_TIMEOUT:
+            inactive_users.append(user_id)
+    
+    for user_id in inactive_users:
+        del user_sessions[user_id]
+        logger.info(f"Removed inactive session for user {user_id}")
+
+# Call this function periodically, for example in main()
+// ... existing code ...
+
+def main() -> None:
+    """Start the bot."""
+    # ... existing code ...
+    
+    # Schedule cleanup task
+    async def scheduled_cleanup(context: ContextTypes.DEFAULT_TYPE):
+        cleanup_inactive_sessions()
+    
+    # Run cleanup every hour
+    application.job_queue.run_repeating(scheduled_cleanup, interval=3600)
+    
+    # ... existing code ...
